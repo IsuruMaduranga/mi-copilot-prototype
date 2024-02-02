@@ -22,11 +22,10 @@ app.add_middleware(
 # Read system.prompt file
 with open("system.prompt", "r") as f:
     system_msg_txt = f.read()
-    
+
 with open("config.toml", "r") as f:
     config = toml.load(f)
-    print(config)
-    
+
 system_msg = Message(role="system", content=system_msg_txt)
 
 def generate_synapse(chat: Chat):        
@@ -36,7 +35,7 @@ def generate_synapse(chat: Chat):
         temperature=config["openai"]["temperature"],
         messages=list(chat.chat_history),
         stream=True,
-    )   
+    ) 
     for chunk in stream:
         if chunk.choices[0].delta.content is not None:
             yield f"{chunk.choices[0].delta.content}\n\n"
@@ -47,5 +46,5 @@ async def stream_data(chat: Chat, response: Response):
     response.headers["Cache-Control"] = "no-cache"
     response.headers["Connection"] = "keep-alive"
     
-    chat.chat_history.appendleft(system_msg)
+    chat.chat_history.insert(0, system_msg)
     return StreamingResponse(generate_synapse(chat))
