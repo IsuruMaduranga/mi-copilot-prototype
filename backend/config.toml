@@ -1,0 +1,4 @@
+[openai]
+model = "gpt-4-turbo-preview"
+seed = 0
+temperature = 0
