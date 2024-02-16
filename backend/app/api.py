@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
-from app.models import Chat
+from app.models import Chat, SynapseGenerationResponse
 from app.llm import generate_synapse
 
 api = FastAPI()
@@ -14,7 +14,7 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
-@api.post("/generate-synapse")
+@api.post("/generate-synapse", response_model=SynapseGenerationResponse)
 async def stream_data(chat: Chat, response: Response):
     response.headers["Content-Type"] = "text/event-stream"
     response.headers["Cache-Control"] = "no-cache"

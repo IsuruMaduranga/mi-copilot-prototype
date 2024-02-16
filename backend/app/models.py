@@ -7,3 +7,7 @@ class Message(BaseModel):
     
 class Chat(BaseModel):
     chat_history: List[Message]
+    
+class SynapseGenerationResponse(BaseModel):
+    content: str
+    questions: List[str]
