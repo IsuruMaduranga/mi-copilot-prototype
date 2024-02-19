@@ -34,16 +34,16 @@ async def generate_synapse(chat: Chat) -> str:
         content = chunk.choices[0].delta.content
         if content:
             response += content
-            yield SynapseGenerationResponse(content=content, questions=[]).model_dump_json()
+            yield SynapseGenerationResponse(content=content, questions=[]).model_dump_json() + "\n"
     ai_msg = Message(role="assistant", content=response)
     chat.chat_history.append(ai_msg)
     matches = re.findall(pattern, response)
     if matches:    
         questions = await generate_qustions(chat)
-        yield SynapseGenerationResponse(content="", questions=questions).model_dump_json()
+        yield SynapseGenerationResponse(content="", questions=questions).model_dump_json() + "\n"
     else:
         questions = await initial_generate_qustions(chat)
-        yield SynapseGenerationResponse(content="", questions=questions).model_dump_json()
+        yield SynapseGenerationResponse(content="", questions=questions).model_dump_json() + "\n"
             
 async def generate_qustions(chat: Chat) -> str:
     usr_msg = Message(role="user", content=generate_qustions_prompt)
