@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
-from app.models import Chat, SynapseGenerationResponse
-from app.llm import generate_synapse
+from models.base import ChatRequest, ChatResponse
+from ai.copilot import Copilot
 
 api = FastAPI()
+copilot = Copilot()
 
 api.add_middleware(
     CORSMiddleware,
@@ -14,10 +15,10 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
-@api.post("/generate-synapse", response_model=SynapseGenerationResponse)
-async def stream_data(chat: Chat, response: Response):
+@api.post("/code-gen-chat", response_model=ChatResponse)
+async def code_gen_chat(request: ChatRequest, response: Response):
     response.headers["Content-Type"] = "text/event-stream"
     response.headers["Cache-Control"] = "no-cache"
     response.headers["Connection"] = "keep-alive"
     
-    return StreamingResponse(generate_synapse(chat))
+    return StreamingResponse(copilot.code_gen_chat(request.messages))
