@@ -41,4 +41,3 @@ class LLMFactory():
             seed=config["llm"][name]["seed"],
             temperature=config["llm"][name]["temperature"]
         )
- 
