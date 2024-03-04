@@ -1,4 +1,0 @@
-List down {num_of_questions} question/questions that I can ask you to improve the above integration solution in a JSON array
-
-### Output format
-{{"questions": question_array}}

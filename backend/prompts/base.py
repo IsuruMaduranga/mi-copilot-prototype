@@ -18,24 +18,13 @@
 
 from models.base import Template
 from typing import Self
-
-class PromptTemplate(Template):
-    def compile(self, **kwargs) -> str:
-        return self.template.format(**kwargs)
-    
-    def __add__(self, other: Self) -> Self:
-        return PromptTemplate(template=self.template + "\n" + other.template)
+from jinja2 import Environment, FileSystemLoader, Template
     
 class PromptTemplateStorage():
     @classmethod
-    def load_from_storage(cls, name: str) -> PromptTemplate:
-        with open(f"prompts/storage/{name}.prompt", "r") as f:
-            template = f.read()
-        return PromptTemplate(template=template)
-    
-    @classmethod
-    def get(cls, name: str, **kwargs) -> str:
-        return cls.load_from_storage(name).compile(**kwargs)
+    def load_from_storage(cls, name: str) -> Template:
+        env = Environment(loader=FileSystemLoader('prompts/storage'))
+        return env.get_template(f"{name}.j2")
 
 class PromptFactory():
     default_system_msg = PromptTemplateStorage.load_from_storage("system_v3")

@@ -32,15 +32,15 @@ class BaseAgent:
         # Add system message to the chat
         chat = [Message(role="system", content=self.system_message)] + messages
         if self.base_prompt:
-            chat.append(Message(role="system", content=self.base_prompt.compile(**args)))
+            chat.append(Message(role="system", content=self.base_prompt.render(**args)))
         return chat
 
 ### Custom Agents
 class ChatAgent(BaseAgent):
     def __init__(self):
         llm = LLMFactory.get_llm("default")
-        system_message=PromptFactory.default_system_msg + PromptFactory.synapase_gen_instructions
-        super().__init__(llm=llm, system_message=system_message.compile())
+        system_message = PromptFactory.default_system_msg.render()
+        super().__init__(llm=llm, system_message=system_message)
         
     def chat(self, messages: List[Message]) -> AsyncGenerator[str, None]:
         chat = self.prepare_chat(messages=messages)
@@ -49,8 +49,7 @@ class ChatAgent(BaseAgent):
 class QuestionGenerationAgent(BaseAgent):
     def __init__(self):
         llm = LLMFactory.get_llm("default")
-        system_message=PromptFactory.default_system_msg + PromptFactory.synapase_gen_instructions
-        system_message = system_message.compile()
+        system_message = PromptFactory.default_system_msg.render()
         super().__init__(llm=llm, system_message=system_message)
         
     async def generate(self, messages: List[Message], num_of_questions = 1, related = True) -> str:
@@ -59,5 +58,6 @@ class QuestionGenerationAgent(BaseAgent):
         else:
             self.base_prompt = PromptFactory.integration_q_gen
         chat = self.prepare_chat(messages=messages, args={"num_of_questions": num_of_questions})
+        print(chat)
         result =  await self.llm.chat(messages=chat, stream=False, json_mode=True)
         return result
