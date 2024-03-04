@@ -1,4 +1,4 @@
-List down 5 sample integration problems that the user can ask you in a JSON array.
+List down {num_of_questions} sample integration problem/problems that the user can ask you in a JSON array.
 
 ### Output format
 {{"questions": question_array}}
