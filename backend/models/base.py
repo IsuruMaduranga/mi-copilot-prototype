@@ -42,7 +42,7 @@ class ChatResponse(BaseModel):
     
 class ChatRequest(BaseModel):
     messages: List[Message]
-    context: Optional[List[str]]
+    context: Optional[List[str]] = None
     
 class Template(BaseModel):
     template: str

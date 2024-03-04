@@ -21,6 +21,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
 from models.base import ChatRequest, ChatResponse
 from ai.copilot import Copilot
+from dotenv import load_dotenv
+
+load_dotenv()
 
 api = FastAPI()
 copilot = Copilot()
