@@ -53,7 +53,7 @@ class QuestionGenerationAgent(BaseAgent):
         system_message = system_message.compile()
         super().__init__(llm=llm, system_message=system_message)
         
-    async def generate(self, messages: List[Message], num_of_questions, related = True) -> str:
+    async def generate(self, messages: List[Message], num_of_questions = 1, related = True) -> str:
         if related:
             self.base_prompt = PromptFactory.related_q_gen
         else:
