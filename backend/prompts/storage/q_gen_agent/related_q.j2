@@ -1,0 +1,8 @@
+Now ask {{ num_of_questions }} {{ "question" if  num_of_questions==1 else "questions" }} to improve the given solution based on your below chat history with AI agent
+chat_history:
+{{ chat_history }}
+
+### Output format
+{% raw %}
+{ "questions": question_array }
+{% endraw %}
