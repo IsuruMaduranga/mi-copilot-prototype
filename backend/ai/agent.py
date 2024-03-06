@@ -46,8 +46,8 @@ class ChatAgent(BaseAgent):
         base_prompt = PromptFactory.code_gen_chat_base
         super().__init__(llm=llm, system_message=system_message, base_prompt=base_prompt)
         
-    def chat(self, messages: List[Message]) -> AsyncGenerator[str, None]:
-        chat = self.prepare_chat(messages=messages[:-1], kwargs={"question": messages[-1].content})
+    def chat(self, messages: List[Message], context: List[str]) -> AsyncGenerator[str, None]:
+        chat = self.prepare_chat(messages=messages[:-1], kwargs={"question": messages[-1].content, "context": context})
         return super().chat(messages=chat)
     
 class QuestionGenerationAgent(BaseAgent):
@@ -76,4 +76,3 @@ class QuestionGenerationAgent(BaseAgent):
         chat = self.prepare_chat(messages=messages, kwargs={"num_of_questions": num_of_questions, "chat_history": self.prepare_messages(messages)})
         result =  await self.llm.chat(messages=chat, stream=False, json_mode=True)
         return result
-    

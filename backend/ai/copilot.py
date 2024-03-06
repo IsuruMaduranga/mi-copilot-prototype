@@ -31,15 +31,16 @@ class Copilot():
         self.chat_agent = ChatAgent()
         self.question_agent = QuestionGenerationAgent()
         
-    async def code_gen_chat(self, messages: List[Message]) -> AsyncGenerator[ChatResponse, None]:
+    async def code_gen_chat(self, messages: List[Message], context: List[str], num_predicted_questions: int) -> AsyncGenerator[ChatResponse, None]:
         response = ""
-        async for chunk in await self.chat_agent.chat(messages):
+        async for chunk in await self.chat_agent.chat(messages, context=context):
             if(chunk):
                 response += chunk
                 yield ChatResponse(content=chunk, event=Event.CHAT_GENERATING).model_dump_json() + "\n"
+        print(response)
         messages.append(Message(role="system", content=response))
         matches = re.findall(self.pattern, response)
-        q = await self.question_agent.generate(messages, 1, bool(matches))
+        q = await self.question_agent.generate(messages, num_predicted_questions, bool(matches))
         try:
             parsed_q = json.loads(q)["questions"]
         except:
