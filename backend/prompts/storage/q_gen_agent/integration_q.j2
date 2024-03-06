@@ -1,0 +1,8 @@
+Now ask {{ num_of_questions }} integration {{ "problem" if  num_of_questions==1 else "problems" }} from AI agent to solve.
+Your current chat history with the AI agent is as follows:
+{{ chat_history }}
+
+### Output format
+{% raw %}
+{ "questions": question_array }
+{% endraw %}

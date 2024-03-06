@@ -39,7 +39,5 @@ api.add_middleware(
 @api.post("/code-gen-chat", response_model=ChatResponse)
 async def code_gen_chat(request: ChatRequest, response: Response):
     response.headers["Content-Type"] = "text/event-stream"
-    response.headers["Cache-Control"] = "no-cache"
-    response.headers["Connection"] = "keep-alive"
-    
-    return StreamingResponse(copilot.code_gen_chat(request.messages))
+    #response.headers["Connection"] = "keep-alive"
+    return StreamingResponse(copilot.code_gen_chat(request.messages, request.context, request.num_predicted_questions))

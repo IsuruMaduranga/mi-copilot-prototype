@@ -22,42 +22,57 @@ from prompts.base import PromptFactory
 from ai.llm import LLM, LLMFactory
 
 class BaseAgent:
-    def __init__(self, llm: LLM, system_message: str,  **kwargs):
+    def __init__(self, llm: LLM,  **kwargs):
         self.llm = llm
-        self.system_message = system_message
+        self.system_message = kwargs.get("system_message", PromptFactory.base_agent_system_msg)
         self.base_prompt = kwargs.get("base_prompt", None)
         self.tools = kwargs.get("tools", {})
     
-    def prepare_chat(self, messages: List[Message] = [], args = {}) -> List[Message]:
+    def prepare_chat(self, messages: List[Message] = [], kwargs = {}) -> List[Message]:
         # Add system message to the chat
-        chat = [Message(role="system", content=self.system_message)] + messages
+        chat = [Message(role="system", content=self.system_message.render())] + messages
         if self.base_prompt:
-            chat.append(Message(role="system", content=self.base_prompt.compile(**args)))
+            chat.append(Message(role="user", content=self.base_prompt.render(**kwargs)))
         return chat
+    
+    def chat(self, messages: List[Message]) -> AsyncGenerator[str, None]:
+        return self.llm.chat(messages=messages)
 
 ### Custom Agents
 class ChatAgent(BaseAgent):
     def __init__(self):
         llm = LLMFactory.get_llm("default")
-        system_message=PromptFactory.default_system_msg + PromptFactory.synapase_gen_instructions
-        super().__init__(llm=llm, system_message=system_message.compile())
+        system_message = PromptFactory.code_gen_chat_system
+        base_prompt = PromptFactory.code_gen_chat_base
+        super().__init__(llm=llm, system_message=system_message, base_prompt=base_prompt)
         
-    def chat(self, messages: List[Message]) -> AsyncGenerator[str, None]:
-        chat = self.prepare_chat(messages=messages)
-        return self.llm.chat(messages=chat)
-
+    def chat(self, messages: List[Message], context: List[str]) -> AsyncGenerator[str, None]:
+        chat = self.prepare_chat(messages=messages[:-1], kwargs={"question": messages[-1].content, "context": context})
+        return super().chat(messages=chat)
+    
 class QuestionGenerationAgent(BaseAgent):
     def __init__(self):
         llm = LLMFactory.get_llm("default")
-        system_message=PromptFactory.default_system_msg + PromptFactory.synapase_gen_instructions
-        system_message = system_message.compile()
+        system_message = PromptFactory.q_gen_system_msg
         super().__init__(llm=llm, system_message=system_message)
+    
+    @staticmethod
+    def prepare_messages(messages: List[Message]) -> str:
+        m = ""
+        for message in messages:
+            l = ""
+            if message.role == "user":
+                l = "You: " + message.content
+            elif message.role == "system":
+                l = "AI: \n" + message.content
+            m += l + "\n"
+        return m
         
     async def generate(self, messages: List[Message], num_of_questions = 1, related = True) -> str:
         if related:
             self.base_prompt = PromptFactory.related_q_gen
         else:
             self.base_prompt = PromptFactory.integration_q_gen
-        chat = self.prepare_chat(messages=messages, args={"num_of_questions": num_of_questions})
+        chat = self.prepare_chat(messages=messages, kwargs={"num_of_questions": num_of_questions, "chat_history": self.prepare_messages(messages)})
         result =  await self.llm.chat(messages=chat, stream=False, json_mode=True)
         return result

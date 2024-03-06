@@ -18,27 +18,19 @@
 
 from models.base import Template
 from typing import Self
-
-class PromptTemplate(Template):
-    def compile(self, **kwargs) -> str:
-        return self.template.format(**kwargs)
-    
-    def __add__(self, other: Self) -> Self:
-        return PromptTemplate(template=self.template + "\n" + other.template)
+from jinja2 import Environment, FileSystemLoader, Template
     
 class PromptTemplateStorage():
     @classmethod
-    def load_from_storage(cls, name: str) -> PromptTemplate:
-        with open(f"prompts/storage/{name}.prompt", "r") as f:
-            template = f.read()
-        return PromptTemplate(template=template)
-    
-    @classmethod
-    def get(cls, name: str, **kwargs) -> str:
-        return cls.load_from_storage(name).compile(**kwargs)
+    def load_from_storage(cls, name: str) -> Template:
+        env = Environment(loader=FileSystemLoader('prompts/storage'))
+        return env.get_template(f"{name}.j2")
 
 class PromptFactory():
-    default_system_msg = PromptTemplateStorage.load_from_storage("system_v3")
-    synapase_gen_instructions = PromptTemplateStorage.load_from_storage("synapse_generation_instructions")
-    related_q_gen = PromptTemplateStorage.load_from_storage("related_question_generation")
-    integration_q_gen = PromptTemplateStorage.load_from_storage("integration_question_generation")
+    base_agent_system_msg = PromptTemplateStorage.load_from_storage("base_agent/system")
+    code_gen_chat_system = PromptTemplateStorage.load_from_storage("code_gen_agent/system")
+    code_gen_chat_base = PromptTemplateStorage.load_from_storage("code_gen_agent/base")
+    synapase_gen_instructions = PromptTemplateStorage.load_from_storage("common/synapse_gen_instructions")
+    q_gen_system_msg = PromptTemplateStorage.load_from_storage("q_gen_agent/system")
+    related_q_gen = PromptTemplateStorage.load_from_storage("q_gen_agent/related_q")
+    integration_q_gen = PromptTemplateStorage.load_from_storage("q_gen_agent/integration_q")

@@ -1,0 +1,8 @@
+{% if context %}
+    My current project is attached below. Use this to understand my current project and answer my question.
+    project:
+    {{ context }}
+    question: {{ question }}
+{% else %}
+    {{ question }}
+{% endif %}
