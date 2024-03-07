@@ -1,9 +1,10 @@
-[llm.default]
+[copilot]
+seed = -1
+
+[llm.codegen_chat]
 model = "gpt-4-turbo-preview"
-seed = 0
 temperature = 0
 
 [llm.q_gen]
 model = "gpt-4-turbo-preview"
-seed = 0
 temperature = 0.5

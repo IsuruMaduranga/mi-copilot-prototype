@@ -43,7 +43,7 @@ class BaseAgent:
 ### Custom Agents
 class ChatAgent(BaseAgent):
     def __init__(self):
-        llm = LLMFactory.get_llm("default")
+        llm = LLMFactory.get_llm("codegen_chat")
         system_message = PromptFactory.code_gen_chat_system
         base_prompt = PromptFactory.code_gen_chat_base
         super().__init__(llm=llm, system_message=system_message, base_prompt=base_prompt)

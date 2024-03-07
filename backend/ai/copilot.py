@@ -17,6 +17,7 @@
 #####################################################################
 
 import json
+import logging
 from typing import List, AsyncGenerator
 from ai.agent import ChatAgent, QuestionGenerationAgent
 from models.base import Message, ChatResponse, Event, QuestionGenerationResponse
@@ -38,7 +39,8 @@ class Copilot():
         try:
             q = await self.question_agent.generate(messages, context, num_predicted_questions)
             parsed_q = json.loads(q)["questions"]
-        except:
+        except Exception as e:
+            logging.error(e)
             yield ChatResponse(questions=[], event=Event.QUESTION_GENERATION_ERROR).model_dump_json() + "\n"
         else:
             yield ChatResponse(questions=parsed_q, event=Event.QUESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
@@ -47,7 +49,8 @@ class Copilot():
         try:
             q = await self.question_agent.generate(messages, context, num_predicted_questions)
             parsed_q = json.loads(q)["questions"]
-        except:
+        except Exception as e:
+            logging.error(e)
             return QuestionGenerationResponse(questions=[], event=Event.QUESTION_GENERATION_ERROR)
         else:
             return QuestionGenerationResponse(questions=parsed_q, event=Event.QUESTION_GENERATION_SUCCESS)
