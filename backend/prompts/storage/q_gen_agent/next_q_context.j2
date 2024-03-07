@@ -1,4 +1,5 @@
 Ask {{ num_of_questions }} {{ "question" if  num_of_questions==1 else "questions" }} from AI to improve or evolve below PROJECT.
+You can ask question to add more articafts also ( Apis, Sequences, Endpoints etc )
 PROJECT:
 {% for item in context %}
 {{ item }}
@@ -8,7 +9,6 @@ PROJECT:
 Current chat history with AI agent:
 {{ chat_history }}
 {% endif %}
-
 ### Output format
 {% raw %}
 { "questions": question_array }

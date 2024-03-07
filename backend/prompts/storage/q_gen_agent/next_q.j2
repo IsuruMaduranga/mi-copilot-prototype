@@ -1,0 +1,9 @@
+Ask {{ num_of_questions }} {{ "question" if  num_of_questions==1 else "questions" }} to improve the given solution based on your below chat history with AI.
+You can ask question to add more articafts also ( Apis, Sequences, Endpoints etc )
+chat_history:
+{{ chat_history }}
+
+### Output format
+{% raw %}
+{ "questions": question_array }
+{% endraw %}
