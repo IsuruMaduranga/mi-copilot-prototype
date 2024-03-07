@@ -1,8 +1,10 @@
 {% if context %}
-    My current project is attached below. Use this to understand my current project and answer my question.
-    project:
-    {{ context }}
-    question: {{ question }}
+My current PROJECT is attached below. Use this to understand my current project and answer my QUESTION.
+PROJECT:
+{% for item in context %}
+{{ item }}
+{% endfor %}
+QUESTION: {{ question }}
 {% else %}
-    {{ question }}
+{{ question }}
 {% endif %}

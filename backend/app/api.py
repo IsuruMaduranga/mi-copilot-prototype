@@ -19,7 +19,7 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
-from models.base import ChatRequest, ChatResponse
+from models.base import ChatRequest, ChatResponse, QuestionGenerationResponse
 from ai.copilot import Copilot
 from dotenv import load_dotenv
 
@@ -37,7 +37,14 @@ api.add_middleware(
 )
 
 @api.post("/code-gen-chat", response_model=ChatResponse)
-async def code_gen_chat(request: ChatRequest, response: Response):
+async def code_gen_chat(request: ChatRequest, response: Response) -> ChatResponse:
     response.headers["Content-Type"] = "text/event-stream"
-    #response.headers["Connection"] = "keep-alive"
-    return StreamingResponse(copilot.code_gen_chat(request.messages, request.context, request.num_predicted_questions))
+    return StreamingResponse(copilot.code_gen_chat(request.messages, request.context, request.num_questions))
+
+@api.get("/question-gen", response_model=QuestionGenerationResponse)
+async def question_gen_get(num_questions: int) -> QuestionGenerationResponse:
+    return await copilot.generate_q([], {}, num_questions)
+
+@api.post("/question-gen", response_model=QuestionGenerationResponse)
+async def question_gen(request: ChatRequest, response: Response):
+    return await copilot.generate_q(request.messages, request.context, request.num_questions)

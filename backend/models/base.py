@@ -43,7 +43,17 @@ class ChatResponse(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[Message]
     context: Optional[List[str]] = None
-    num_predicted_questions: Optional[int] = 1
+    num_questions: Optional[int] = 1
+    
+class QuestionGenerationRequest(BaseModel):
+    messages: List[Message]
+    context: Optional[List[str]] = None
+    num_questions: Optional[int] = 1
+    
+class QuestionGenerationResponse(BaseModel):
+    event: Event
+    error: Error = None
+    questions: List[str]
     
 class Template(BaseModel):
     template: str

@@ -33,4 +33,5 @@ class PromptFactory():
     synapase_gen_instructions = PromptTemplateStorage.load_from_storage("common/synapse_gen_instructions")
     q_gen_system_msg = PromptTemplateStorage.load_from_storage("q_gen_agent/system")
     related_q_gen = PromptTemplateStorage.load_from_storage("q_gen_agent/related_q")
+    related_q_gen_context = PromptTemplateStorage.load_from_storage("q_gen_agent/related_q_context")
     integration_q_gen = PromptTemplateStorage.load_from_storage("q_gen_agent/integration_q")
