@@ -49,6 +49,7 @@ class QuestionGenerationRequest(BaseModel):
     messages: List[Message]
     context: Optional[List[str]] = None
     num_questions: Optional[int] = 1
+    type: Literal['artifact_gen', 'copilot_chat']
     
 class QuestionGenerationResponse(BaseModel):
     event: Event

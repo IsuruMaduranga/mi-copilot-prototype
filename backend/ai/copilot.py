@@ -19,25 +19,28 @@
 import json
 import logging
 from typing import List, AsyncGenerator
-from ai.agent import ChatAgent, QuestionGenerationAgent
+from ai.agent import ArtifactGenAgent, QGenAgent, CopilotChatAgent, CopilotChatQGenAgent
 from models.base import Message, ChatResponse, Event, QuestionGenerationResponse
 
 class Copilot():
     
     def __init__(self):
         # Creating agents
-        self.chat_agent = ChatAgent()
-        self.question_agent = QuestionGenerationAgent()
+        self.artifact_gen_agent = ArtifactGenAgent()
+        self.q_gen_agent = QGenAgent()
+        self.copilot_chat_agent = CopilotChatAgent()
+        self.copilot_chat_q_gen_agent = CopilotChatQGenAgent()
         
     async def code_gen_chat(self, messages: List[Message], context: List[str], num_predicted_questions: int) -> AsyncGenerator[ChatResponse, None]:
         response = ""
-        async for chunk in await self.chat_agent.chat(messages, context=context):
+        async for chunk in await self.artifact_gen_agent.chat(messages, context=context):
             if(chunk):
                 response += chunk
                 yield ChatResponse(content=chunk, event=Event.CHAT_GENERATING).model_dump_json() + "\n"
-        messages.append(Message(role="system", content=response))
+        yield ChatResponse(content="", event=Event.CHAT_SUCCESS).model_dump_json() + "\n"
+        messages.append(Message(role="assistant", content=response))
         try:
-            q = await self.question_agent.generate(messages, context, num_predicted_questions)
+            q = await self.q_gen_agent.generate(messages, context, num_predicted_questions)
             parsed_q = json.loads(q)["questions"]
         except Exception as e:
             logging.error(e)
@@ -45,12 +48,34 @@ class Copilot():
         else:
             yield ChatResponse(questions=parsed_q, event=Event.QUESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
     
-    async def generate_q(self,  messages: List[Message], context: List[str], num_predicted_questions: int) -> QuestionGenerationResponse:
+    async def generate_q(self,  messages: List[Message], context: List[str], num_predicted_questions: int, q_type: str) -> QuestionGenerationResponse:
         try:
-            q = await self.question_agent.generate(messages, context, num_predicted_questions)
+            if q_type == "copilot_chat":
+                q = await self.copilot_chat_q_gen_agent.generate(messages, context, num_predicted_questions)
+            else:
+                q = await self.q_gen_agent.generate(messages, context, num_predicted_questions)
             parsed_q = json.loads(q)["questions"]
         except Exception as e:
             logging.error(e)
             return QuestionGenerationResponse(questions=[], event=Event.QUESTION_GENERATION_ERROR)
         else:
             return QuestionGenerationResponse(questions=parsed_q, event=Event.QUESTION_GENERATION_SUCCESS)
+        
+    async def chat(self, messages: List[Message], ) -> AsyncGenerator[ChatResponse, None]:
+        response = ""
+        async for chunk in await self.copilot_chat_agent.chat(messages):
+            if(chunk):
+                response += chunk
+                yield ChatResponse(content=chunk, event=Event.CHAT_GENERATING).model_dump_json() + "\n"
+        print(response)
+        messages.append(Message(role="assistant", content=response))
+        yield ChatResponse(content="", event=Event.CHAT_SUCCESS).model_dump_json() + "\n"
+        try:
+            q = await self.copilot_chat_q_gen_agent.generate(messages, [], 1)
+            parsed_q = json.loads(q)["questions"]
+        except Exception as e:
+            logging.error(e)
+            yield ChatResponse(questions=[], event=Event.QUESTION_GENERATION_ERROR).model_dump_json() + "\n"
+        else:
+            yield ChatResponse(questions=parsed_q, event=Event.QUESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
+        

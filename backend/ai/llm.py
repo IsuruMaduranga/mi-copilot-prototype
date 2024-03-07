@@ -34,7 +34,6 @@ class LLM():
         
     async def chat(self, messages: List[Message], stream: bool = True, **kwargs) -> AsyncGenerator[str, None] | str:
         response_format =  { "type": "json_object" if kwargs.get("json_mode", False) else "text"}
-        print(self.settings)
         res = await self.llm.chat.completions.create(
             messages=messages,
             stream=stream,
@@ -58,3 +57,11 @@ class LLMFactory():
             "temperature": config["llm"][name]["temperature"]
         }
         return LLM(settings)
+    
+    @classmethod
+    def get_default_llm(cls) -> LLM:
+        settings = {
+            "model": config["copilot"]["model"],
+            "temperature": config["copilot"]["temperature"]
+        }
+        return LLM
