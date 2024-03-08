@@ -47,9 +47,9 @@ async def code_gen_chat(request: ChatRequest, response: Response) -> ChatRespons
     return StreamingResponse(copilot.code_gen_chat(request.messages, request.context, request.num_questions))
 
 @api.get("/question-gen", response_model=QuestionGenerationResponse)
-async def question_gen_get(num_questions: int, response: Response) -> QuestionGenerationResponse:
+async def question_gen_get(num_questions: int, q_type: str, response: Response) -> QuestionGenerationResponse:
     response.headers["Cache-Control"] = "no-cache"
-    return await copilot.generate_q([], {}, num_questions)
+    return await copilot.generate_q([], {}, num_questions, q_type)
 
 @api.post("/question-gen", response_model=QuestionGenerationResponse)
 async def question_gen(request: QuestionGenerationRequest, response: Response):

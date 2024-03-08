@@ -8,9 +8,9 @@ model = "gpt-4-turbo-preview"
 temperature = 0
 
 [llm.q_gen]
-model = "gpt-3.5-turbo"
-temperature = 0.1
+model = "gpt-4-turbo-preview"
+temperature = 0.7
 
 [llm.copilot_chat]
 model = "gpt-4-turbo-preview"
-temperature = 0.9
+temperature = 0.7
