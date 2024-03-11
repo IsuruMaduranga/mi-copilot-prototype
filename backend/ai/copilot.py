@@ -16,34 +16,76 @@
 # under the License.
 #####################################################################
 
-import re
 import json
+import logging
 from typing import List, AsyncGenerator
-from ai.agent import ChatAgent, QuestionGenerationAgent
-from ai.llm import LLM
-from models.base import Message, ChatResponse, Event
+from ai.agent import ArtifactGenAgent, QGenAgent, CopilotChatAgent, CopilotChatQGenAgent, ArtifactEditAgent
+from models.base import Message, ChatResponse, Event, QuestionGenerationResponse
 
 class Copilot():
-    pattern = re.compile(r'```xml(.*?)```', re.DOTALL)
     
     def __init__(self):
         # Creating agents
-        self.chat_agent = ChatAgent()
-        self.question_agent = QuestionGenerationAgent()
+        self.artifact_gen_agent = ArtifactGenAgent()
+        self.q_gen_agent = QGenAgent()
+        self.copilot_chat_agent = CopilotChatAgent()
+        self.copilot_chat_q_gen_agent = CopilotChatQGenAgent()
+        self.artifact_edit_agent = ArtifactEditAgent()
         
     async def code_gen_chat(self, messages: List[Message], context: List[str], num_predicted_questions: int) -> AsyncGenerator[ChatResponse, None]:
         response = ""
-        async for chunk in await self.chat_agent.chat(messages, context=context):
+        async for chunk in await self.artifact_gen_agent.chat(messages, context=context):
+            if(chunk):
+                response += chunk
+                yield ChatResponse(content=chunk, event=Event.CHAT_GENERATING).model_dump_json() + "\n"
+        yield ChatResponse(content="", event=Event.CHAT_SUCCESS).model_dump_json() + "\n"
+        messages.append(Message(role="assistant", content=response))
+        try:
+            q = await self.q_gen_agent.generate(messages, context, num_predicted_questions)
+            parsed_q = json.loads(q)["questions"]
+        except Exception as e:
+            logging.error(e)
+            yield ChatResponse(questions=[], event=Event.QUESTION_GENERATION_ERROR).model_dump_json() + "\n"
+        else:
+            yield ChatResponse(questions=parsed_q, event=Event.QUESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
+    
+    async def generate_q(self,  messages: List[Message], context: List[str], num_predicted_questions: int, q_type: str) -> QuestionGenerationResponse:
+        try:
+            if q_type == "copilot_chat":
+                q = await self.copilot_chat_q_gen_agent.generate(messages, context, num_predicted_questions)
+            else:
+                q = await self.q_gen_agent.generate(messages, context, num_predicted_questions)
+            parsed_q = json.loads(q)["questions"]
+        except Exception as e:
+            logging.error(e)
+            return QuestionGenerationResponse(questions=[], event=Event.QUESTION_GENERATION_ERROR)
+        else:
+            return QuestionGenerationResponse(questions=parsed_q, event=Event.QUESTION_GENERATION_SUCCESS)
+        
+    async def chat(self, messages: List[Message], ) -> AsyncGenerator[ChatResponse, None]:
+        response = ""
+        async for chunk in await self.copilot_chat_agent.chat(messages):
             if(chunk):
                 response += chunk
                 yield ChatResponse(content=chunk, event=Event.CHAT_GENERATING).model_dump_json() + "\n"
         print(response)
-        messages.append(Message(role="system", content=response))
-        matches = re.findall(self.pattern, response)
-        q = await self.question_agent.generate(messages, num_predicted_questions, bool(matches))
+        messages.append(Message(role="assistant", content=response))
+        yield ChatResponse(content="", event=Event.CHAT_SUCCESS).model_dump_json() + "\n"
         try:
+            q = await self.copilot_chat_q_gen_agent.generate(messages, [], 1)
             parsed_q = json.loads(q)["questions"]
-        except:
+        except Exception as e:
+            logging.error(e)
             yield ChatResponse(questions=[], event=Event.QUESTION_GENERATION_ERROR).model_dump_json() + "\n"
         else:
             yield ChatResponse(questions=parsed_q, event=Event.QUESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
+    
+    async def artifact_edit_chat(self, messages: List[Message], context: List[str]) -> AsyncGenerator[ChatResponse, None]:
+        async for chunk in await self.artifact_edit_agent.chat(messages, context):
+            if(chunk):
+                yield ChatResponse(content=chunk, event=Event.CHAT_GENERATING).model_dump_json() + "\n"
+        yield ChatResponse(content="", event=Event.CHAT_SUCCESS).model_dump_json() + "\n"
+        
+        # Generate questions
+        yield ChatResponse(questions=["Test question"], event=Event.QUESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
+        

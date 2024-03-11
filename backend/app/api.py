@@ -19,7 +19,7 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
-from models.base import ChatRequest, ChatResponse
+from models.base import ChatRequest, ChatResponse, QuestionGenerationResponse, QuestionGenerationRequest
 from ai.copilot import Copilot
 from dotenv import load_dotenv
 
@@ -36,8 +36,33 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
+@api.get("/health")
+async def health():
+    return {"status": "ok"}
+
 @api.post("/code-gen-chat", response_model=ChatResponse)
-async def code_gen_chat(request: ChatRequest, response: Response):
+async def code_gen_chat(request: ChatRequest, response: Response) -> ChatResponse:
     response.headers["Content-Type"] = "text/event-stream"
-    #response.headers["Connection"] = "keep-alive"
-    return StreamingResponse(copilot.code_gen_chat(request.messages, request.context, request.num_predicted_questions))
+    response.headers["Cache-Control"] = "no-cache"
+    return StreamingResponse(copilot.code_gen_chat(request.messages, request.context, request.num_questions))
+
+@api.get("/question-gen", response_model=QuestionGenerationResponse)
+async def question_gen_get(num_questions: int, q_type: str, response: Response) -> QuestionGenerationResponse:
+    response.headers["Cache-Control"] = "no-cache"
+    return await copilot.generate_q([], {}, num_questions, q_type)
+
+@api.post("/question-gen", response_model=QuestionGenerationResponse)
+async def question_gen(request: QuestionGenerationRequest, response: Response):
+    response.headers["Cache-Control"] = "no-cache"
+    return await copilot.generate_q(request.messages, request.context, request.num_questions, request.type)
+
+@api.post("/chat")
+async def chat(request: ChatRequest, response: Response):
+    response.headers["Cache-Control"] = "no-cache"
+    return StreamingResponse(copilot.chat(request.messages))
+
+@api.post("/artifact-edit-chat", response_model=ChatResponse)
+async def artifact_edit_chat(request: ChatRequest, response: Response) -> ChatResponse:
+    response.headers["Content-Type"] = "text/event-stream"
+    response.headers["Cache-Control"] = "no-cache"
+    return StreamingResponse(copilot.artifact_edit_chat(request.messages, request.context))

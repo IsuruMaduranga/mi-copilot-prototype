@@ -19,25 +19,26 @@
 from typing import AsyncGenerator, List
 from openai import AsyncOpenAI
 from models.base import Message
-from prompts.base import PromptFactory
 import toml
 
+with open("config.toml", "r") as f:
+    config = toml.load(f)
+
 class LLM():
-    def __init__(self, model: str, seed: int, temperature: float):
+    def __init__(self, settings: dict):
         self.llm  = AsyncOpenAI()
-        self.model = model
-        self.seed = seed
-        self.temperature = temperature
+        self.settings = settings
+        seed=config["copilot"]["seed"]
+        if seed > 0:
+            self.settings["seed"] = seed
         
     async def chat(self, messages: List[Message], stream: bool = True, **kwargs) -> AsyncGenerator[str, None] | str:
         response_format =  { "type": "json_object" if kwargs.get("json_mode", False) else "text"}
         res = await self.llm.chat.completions.create(
-            model=self.model,
-            seed=self.seed,
-            temperature=self.temperature,
             messages=messages,
             stream=stream,
-            response_format=response_format
+            response_format=response_format,
+            **self.settings
         )
         
         async def chat_stream():
@@ -51,10 +52,16 @@ class LLM():
 class LLMFactory():
     @classmethod
     def get_llm(cls, name) -> LLM:
-        with open("config.toml", "r") as f:
-            config = toml.load(f)
-        return LLM(
-            model=config["llm"][name]["model"],
-            seed=config["llm"][name]["seed"],
-            temperature=config["llm"][name]["temperature"]
-        )
+        settings = {
+            "model": config["llm"][name]["model"],
+            "temperature": config["llm"][name]["temperature"]
+        }
+        return LLM(settings)
+    
+    @classmethod
+    def get_default_llm(cls) -> LLM:
+        settings = {
+            "model": config["copilot"]["model"],
+            "temperature": config["copilot"]["temperature"]
+        }
+        return LLM

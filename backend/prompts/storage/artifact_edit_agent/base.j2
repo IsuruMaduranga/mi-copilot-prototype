@@ -1,0 +1,14 @@
+{{ file }}
+I am currenty editing above file. Please refer it and answer my question or do the required change requested under QUESTION.
+QUESTION: {{ question }}
+
+{% if context %}
+My other project files:
+{% for item in context %}
+{{ item }}
+{% endfor %}
+{% endif %}
+
+If additional synapse artifacts are required, please create them and add them to the project.
+
+IMPORTANT: Don't change the xml articaft name of the project or chat history

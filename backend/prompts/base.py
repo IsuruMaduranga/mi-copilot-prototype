@@ -16,8 +16,6 @@
 # under the License.
 #####################################################################
 
-from models.base import Template
-from typing import Self
 from jinja2 import Environment, FileSystemLoader, Template
     
 class PromptTemplateStorage():
@@ -28,9 +26,19 @@ class PromptTemplateStorage():
 
 class PromptFactory():
     base_agent_system_msg = PromptTemplateStorage.load_from_storage("base_agent/system")
+    
     code_gen_chat_system = PromptTemplateStorage.load_from_storage("code_gen_agent/system")
     code_gen_chat_base = PromptTemplateStorage.load_from_storage("code_gen_agent/base")
     synapase_gen_instructions = PromptTemplateStorage.load_from_storage("common/synapse_gen_instructions")
+    
     q_gen_system_msg = PromptTemplateStorage.load_from_storage("q_gen_agent/system")
-    related_q_gen = PromptTemplateStorage.load_from_storage("q_gen_agent/related_q")
+    related_q_gen = PromptTemplateStorage.load_from_storage("q_gen_agent/next_q")
+    related_q_gen_context = PromptTemplateStorage.load_from_storage("q_gen_agent/next_q_contextv2")
     integration_q_gen = PromptTemplateStorage.load_from_storage("q_gen_agent/integration_q")
+    
+    copilot_chat_system = PromptTemplateStorage.load_from_storage("copilot_chat_agent/system")
+    copilot_q_gen_system = PromptTemplateStorage.load_from_storage("copilot_q_gen_agent/system")
+    copilot_q_gen_base = PromptTemplateStorage.load_from_storage("copilot_q_gen_agent/base")
+    
+    artifact_edit_system = PromptTemplateStorage.load_from_storage("artifact_edit_agent/system")
+    artifact_edit_base = PromptTemplateStorage.load_from_storage("artifact_edit_agent/base")

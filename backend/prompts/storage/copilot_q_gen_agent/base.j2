@@ -1,0 +1,13 @@
+{% if chat_history %}
+Ask {{ num_of_questions }} {{ "question" if  num_of_questions==1 else "questions" }} to continue your chat with AI.
+Or as a learner you can ask entirely new questions also.
+chat_history:
+{{ chat_history }}
+{% else %}
+Ask {{ num_of_questions }} {{ "question" if  num_of_questions==1 else "questions" }} to start a chat with AI.
+{% endif %}
+
+### Output format
+{% raw %}
+{ "questions": question_array }
+{% endraw %}
