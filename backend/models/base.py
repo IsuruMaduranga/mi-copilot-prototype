@@ -55,6 +55,4 @@ class QuestionGenerationResponse(BaseModel):
     event: Event
     error: Error = None
     questions: List[str]
-    
-class Template(BaseModel):
-    template: str
+

@@ -19,16 +19,38 @@
 import re
 from typing import List, AsyncGenerator
 from models.base import Message
+from jinja2 import Template
 from prompts.base import PromptFactory
 from ai.llm import LLM, LLMFactory
 from ai.utils import pretty_print_chat
 
 class BaseAgent:
+    """
+    Base class for all agents
+    Create a new agent for each subtask
+    """
     def __init__(self, **kwargs):
-        self.llm = kwargs.get("llm", LLMFactory.get_default_llm())
-        self.system_message = kwargs.get("system_message", PromptFactory.base_agent_system_msg)
-        self.base_prompt = kwargs.get("base_prompt", None)
-        self.tools = kwargs.get("tools", {})
+        # Don't mofify in runtime unless you want weird bugs
+        self._llm = kwargs.get("llm", LLMFactory.get_default_llm())
+        self._system_message = kwargs.get("system_message", PromptFactory.base_agent_system_msg)
+        self._base_prompt = kwargs.get("base_prompt", None)
+        self._tools = kwargs.get("tools", {})
+    
+    @property
+    def llm(self) -> LLM:
+        return self._llm
+    
+    @property
+    def system_message(self) -> Template:
+        return self._system_message
+    
+    @property
+    def base_prompt(self) -> Template:
+        return self._base_prompt
+    
+    @property
+    def tools(self) -> dict:
+        return self._tools
     
     def prepare_chat(self, messages: List[Message] = [], kwargs = {}) -> List[Message]:
         # Add system message to the chat
@@ -37,8 +59,9 @@ class BaseAgent:
             chat.append(Message(role="user", content=self.base_prompt.render(**kwargs)))
         return chat
     
-    def chat(self, messages: List[Message]) -> AsyncGenerator[str, None]:
-        return self.llm.chat(messages=messages)
+    def chat(self, messages: List[Message], prompt_args: dict = {}, llm_args: dict = {}, stream: bool = True ) -> AsyncGenerator[str, None]:
+        chat = self.prepare_chat(messages=messages, kwargs=prompt_args)
+        return self.llm.chat(messages=chat, stream=stream, **llm_args)
 
 ### Custom Agents
 class ArtifactGenAgent(BaseAgent):
@@ -49,17 +72,24 @@ class ArtifactGenAgent(BaseAgent):
         super().__init__(llm=llm, system_message=system_message, base_prompt=base_prompt)
         
     def chat(self, messages: List[Message], context: List[str]) -> AsyncGenerator[str, None]:
-        chat = self.prepare_chat(messages=messages[:-1], kwargs={"question": messages[-1].content, "context": context})
-        return super().chat(messages=chat)
+        prompt_args = {"question": messages[-1].content, "context": context}
+        return super().chat(messages=messages[:-1], prompt_args=prompt_args)
     
-class QGenAgent(BaseAgent):
+class QGenAgent():
     pattern = re.compile(r'```xml(.*?)```', re.DOTALL)
     
     def __init__(self, **kwargs):
         llm = kwargs.get("llm", LLMFactory.get_llm("q_gen"))
-        system_message = kwargs.get("system_message", PromptFactory.q_gen_system_msg)
-        base_prompt = kwargs.get("base_prompt", None)
-        super().__init__(llm=llm, system_message=system_message, base_prompt=base_prompt)
+        system_message = PromptFactory.q_gen_system_msg
+        related_q_gen_prompt = PromptFactory.related_q_gen
+        related_q_gen_context_prompt =  PromptFactory.related_q_gen_context
+        integration_q_gen_prompt = PromptFactory.integration_q_gen
+        
+        # Create agents for each subtask
+        self.related_q_gen_agent =  BaseAgent(llm=llm, system_message=system_message, base_prompt=related_q_gen_prompt)
+        self.related_q_gen_context_agent = BaseAgent(llm=llm, system_message=system_message, base_prompt=related_q_gen_context_prompt)
+        self.integration_q_gen_agent = BaseAgent(llm=llm, system_message=system_message, base_prompt=integration_q_gen_prompt)
+        
     
     @staticmethod
     def prepare_messages(messages: List[Message]) -> str:
@@ -74,30 +104,25 @@ class QGenAgent(BaseAgent):
         return m
         
     async def generate(self, chat_history: List[Message] = [], context: List[str] = [], num_of_questions = 1) -> str:
+        prompt_args = {"num_of_questions": num_of_questions, "context": context, "chat_history": self.prepare_messages(chat_history)}
+        llm_args = {"json_mode": True}
         if context:
-            self.base_prompt = PromptFactory.related_q_gen_context
+            return await self.related_q_gen_context_agent.chat(messages=[], prompt_args=prompt_args, llm_args=llm_args, stream=False)
         else:
             # Improvement: offload this to a separate thread if it takes too long
             xml = re.search(self.pattern, "\n".join([m.content for m in chat_history]))
             if xml:
-                self.base_prompt = PromptFactory.related_q_gen
+                return await self.related_q_gen_agent.chat(messages=[], prompt_args=prompt_args, llm_args=llm_args, stream=False)
             else:
-                self.base_prompt = PromptFactory.integration_q_gen
-        chat = self.prepare_chat(messages=[], kwargs={"num_of_questions": num_of_questions, "context": context, "chat_history": self.prepare_messages(chat_history)})
-        result =  await self.llm.chat(messages=chat, stream=False, json_mode=True)
-        return result
+                return await self.integration_q_gen_agent.chat(messages=[], prompt_args=prompt_args, llm_args=llm_args, stream=False)
 
 class CopilotChatAgent(BaseAgent):
     def __init__(self):
         llm = LLMFactory.get_llm("copilot_chat")
         system_message = PromptFactory.copilot_chat_system
         super().__init__(llm=llm, system_message=system_message)
-    
-    def chat(self, messages: List[Message]) -> AsyncGenerator[str, None]:
-        chat = self.prepare_chat(messages=messages)
-        return super().chat(messages=chat)
 
-class CopilotChatQGenAgent(QGenAgent):
+class CopilotChatQGenAgent(BaseAgent):
     def __init__(self, **kwargs):
         llm = kwargs.get("llm", LLMFactory.get_llm("q_gen"))
         system_message = kwargs.get("system_message", PromptFactory.copilot_q_gen_system)
@@ -117,5 +142,6 @@ class CopilotChatQGenAgent(QGenAgent):
         return m
         
     async def generate(self, chat_history: List[Message] = [], context: List[str] = [], num_of_questions = 1) -> str:
-        chat = self.prepare_chat(messages=[], kwargs={"num_of_questions": num_of_questions, "context": context, "chat_history": self.prepare_messages(chat_history)})
-        return await self.llm.chat(messages=chat, stream=False, json_mode=True)
+        prompt_args = {"num_of_questions": num_of_questions, "context": context, "chat_history": self.prepare_messages(chat_history)}
+        llm_args = {"json_mode": True}
+        return await super().chat(messages=[], prompt_args=prompt_args, llm_args=llm_args, stream=False)

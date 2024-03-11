@@ -16,8 +16,6 @@
 # under the License.
 #####################################################################
 
-from models.base import Template
-from typing import Self
 from jinja2 import Environment, FileSystemLoader, Template
     
 class PromptTemplateStorage():
@@ -35,7 +33,7 @@ class PromptFactory():
     
     q_gen_system_msg = PromptTemplateStorage.load_from_storage("q_gen_agent/system")
     related_q_gen = PromptTemplateStorage.load_from_storage("q_gen_agent/next_q")
-    related_q_gen_context = PromptTemplateStorage.load_from_storage("q_gen_agent/next_q_context")
+    related_q_gen_context = PromptTemplateStorage.load_from_storage("q_gen_agent/next_q_contextv2")
     integration_q_gen = PromptTemplateStorage.load_from_storage("q_gen_agent/integration_q")
     
     copilot_chat_system = PromptTemplateStorage.load_from_storage("copilot_chat_agent/system")
