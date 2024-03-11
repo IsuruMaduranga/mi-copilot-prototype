@@ -19,7 +19,7 @@
 import json
 import logging
 from typing import List, AsyncGenerator
-from ai.agent import ArtifactGenAgent, QGenAgent, CopilotChatAgent, CopilotChatQGenAgent
+from ai.agent import ArtifactGenAgent, QGenAgent, CopilotChatAgent, CopilotChatQGenAgent, ArtifactEditAgent
 from models.base import Message, ChatResponse, Event, QuestionGenerationResponse
 
 class Copilot():
@@ -30,6 +30,7 @@ class Copilot():
         self.q_gen_agent = QGenAgent()
         self.copilot_chat_agent = CopilotChatAgent()
         self.copilot_chat_q_gen_agent = CopilotChatQGenAgent()
+        self.artifact_edit_agent = ArtifactEditAgent()
         
     async def code_gen_chat(self, messages: List[Message], context: List[str], num_predicted_questions: int) -> AsyncGenerator[ChatResponse, None]:
         response = ""
@@ -78,4 +79,13 @@ class Copilot():
             yield ChatResponse(questions=[], event=Event.QUESTION_GENERATION_ERROR).model_dump_json() + "\n"
         else:
             yield ChatResponse(questions=parsed_q, event=Event.QUESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
+    
+    async def artifact_edit_chat(self, messages: List[Message], context: List[str]) -> AsyncGenerator[ChatResponse, None]:
+        async for chunk in await self.artifact_edit_agent.chat(messages, context):
+            if(chunk):
+                yield ChatResponse(content=chunk, event=Event.CHAT_GENERATING).model_dump_json() + "\n"
+        yield ChatResponse(content="", event=Event.CHAT_SUCCESS).model_dump_json() + "\n"
+        
+        # Generate questions
+        yield ChatResponse(questions=["Test question"], event=Event.QUESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
         

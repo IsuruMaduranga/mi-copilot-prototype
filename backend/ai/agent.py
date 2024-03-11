@@ -145,3 +145,14 @@ class CopilotChatQGenAgent(BaseAgent):
         prompt_args = {"num_of_questions": num_of_questions, "context": context, "chat_history": self.prepare_messages(chat_history)}
         llm_args = {"json_mode": True}
         return await super().chat(messages=[], prompt_args=prompt_args, llm_args=llm_args, stream=False)
+
+class ArtifactEditAgent(BaseAgent):
+    def __init__(self):
+        llm = LLMFactory.get_llm("artifact_edit_chat")
+        system_message = PromptFactory.artifact_edit_system
+        base_prompt = PromptFactory.artifact_edit_base
+        super().__init__(llm=llm, system_message=system_message, base_prompt=base_prompt)
+        
+    def chat(self, messages: List[Message], context: List[str]) -> AsyncGenerator[str, None]:
+        prompt_args = {"question": messages[-1].content, "file": context[0], "context": context[1:]}
+        return super().chat(messages=messages[:-1], prompt_args=prompt_args)

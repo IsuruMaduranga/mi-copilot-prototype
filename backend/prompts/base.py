@@ -39,3 +39,6 @@ class PromptFactory():
     copilot_chat_system = PromptTemplateStorage.load_from_storage("copilot_chat_agent/system")
     copilot_q_gen_system = PromptTemplateStorage.load_from_storage("copilot_q_gen_agent/system")
     copilot_q_gen_base = PromptTemplateStorage.load_from_storage("copilot_q_gen_agent/base")
+    
+    artifact_edit_system = PromptTemplateStorage.load_from_storage("artifact_edit_agent/system")
+    artifact_edit_base = PromptTemplateStorage.load_from_storage("artifact_edit_agent/base")

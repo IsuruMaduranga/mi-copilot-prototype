@@ -60,3 +60,9 @@ async def question_gen(request: QuestionGenerationRequest, response: Response):
 async def chat(request: ChatRequest, response: Response):
     response.headers["Cache-Control"] = "no-cache"
     return StreamingResponse(copilot.chat(request.messages))
+
+@api.post("/artifact-edit-chat", response_model=ChatResponse)
+async def artifact_edit_chat(request: ChatRequest, response: Response) -> ChatResponse:
+    response.headers["Content-Type"] = "text/event-stream"
+    response.headers["Cache-Control"] = "no-cache"
+    return StreamingResponse(copilot.artifact_edit_chat(request.messages, request.context))

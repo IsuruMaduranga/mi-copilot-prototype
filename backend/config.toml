@@ -14,3 +14,7 @@ temperature = 0
 [llm.copilot_chat]
 model = "gpt-4-turbo-preview"
 temperature = 0.7
+
+[llm.artifact_edit_chat]
+model = "gpt-4-turbo-preview"
+temperature = 0.7
