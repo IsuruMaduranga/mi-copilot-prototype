@@ -19,8 +19,8 @@
 import json
 import logging
 from typing import List, AsyncGenerator
-from ai.agent import ArtifactGenAgent, QGenAgent, CopilotChatAgent, CopilotChatQGenAgent, ArtifactEditAgent
-from models.base import Message, ChatResponse, Event, SuggestionResponse
+from . agent import ArtifactGenAgent, QGenAgent, CopilotChatAgent, CopilotChatQGenAgent, ArtifactEditAgent
+from .. models.base import Message, ChatResponse, Event, SuggestionResponse
 
 class Copilot():
     

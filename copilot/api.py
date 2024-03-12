@@ -20,8 +20,8 @@ import functools
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
-from models.base import ChatRequest, ChatResponse, SuggestionResponse, SuggestionRequest
-from ai.copilot import Copilot
+from copilot.models.base import ChatRequest, ChatResponse, SuggestionResponse, SuggestionRequest
+from copilot.ai.copilot import Copilot
 import yaml
 import io
 from dotenv import load_dotenv

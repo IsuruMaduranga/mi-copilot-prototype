@@ -21,7 +21,7 @@ from jinja2 import Environment, FileSystemLoader, Template
 class PromptTemplateStorage():
     @classmethod
     def load_from_storage(cls, name: str) -> Template:
-        env = Environment(loader=FileSystemLoader('prompts/storage'))
+        env = Environment(loader=FileSystemLoader('copilot/prompts/storage'))
         return env.get_template(f"{name}.j2")
 
 class PromptFactory():

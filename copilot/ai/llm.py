@@ -18,7 +18,7 @@
 
 from typing import AsyncGenerator, List
 from openai import AsyncOpenAI
-from models.base import Message
+from copilot.models.base import Message
 import toml
 
 with open("config.toml", "r") as f:
