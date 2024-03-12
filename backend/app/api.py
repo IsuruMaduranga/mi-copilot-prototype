@@ -16,16 +16,25 @@
 # under the License.
 #####################################################################
 
+import functools
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
-from models.base import ChatRequest, ChatResponse, QuestionGenerationResponse, QuestionGenerationRequest
+from models.base import ChatRequest, ChatResponse, SuggestionResponse, SuggestionRequest
 from ai.copilot import Copilot
+import yaml
+import io
 from dotenv import load_dotenv
 
 load_dotenv()
 
-api = FastAPI()
+api = FastAPI(
+    title="WSO2 MI Copilot",
+    description="Backend for WSO2 MI Copilot VSCode Extension",
+    version="0.1.0",
+    license_info={"name": "Apache 2.0", "url": "https://www.apache.org/licenses/LICENSE-2.0"}
+)
+
 copilot = Copilot()
 
 api.add_middleware(
@@ -36,32 +45,41 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
+# additional yaml version of openapi.json
+@api.get('/openapi.yaml', include_in_schema=False)
+@functools.lru_cache()
+def read_openapi_yaml() -> Response:
+    openapi_json= api.openapi()
+    yaml_s = io.StringIO()
+    yaml.dump(openapi_json, yaml_s)
+    return Response(yaml_s.getvalue(), media_type='text/yaml')
+
 @api.get("/health")
 async def health():
     return {"status": "ok"}
 
-@api.post("/code-gen-chat", response_model=ChatResponse)
-async def code_gen_chat(request: ChatRequest, response: Response) -> ChatResponse:
+@api.post("/chat/artifact-generation", response_model=ChatResponse, operation_id="artifact_gen_chat", tags=["generation"])
+async def artifact_gen_chat(request: ChatRequest, response: Response) -> ChatResponse:
     response.headers["Content-Type"] = "text/event-stream"
     response.headers["Cache-Control"] = "no-cache"
-    return StreamingResponse(copilot.code_gen_chat(request.messages, request.context, request.num_questions))
+    return StreamingResponse(copilot.code_gen_chat(request.messages, request.context, request.num_suggestions))
 
-@api.get("/question-gen", response_model=QuestionGenerationResponse)
-async def question_gen_get(num_questions: int, q_type: str, response: Response) -> QuestionGenerationResponse:
+@api.get("/suggestions/initial", response_model=SuggestionResponse, operation_id="initial_suggestions", tags=["suggestions"])
+async def initial_suggestions(num_suggestions: int, q_type: str, response: Response) -> SuggestionResponse:
     response.headers["Cache-Control"] = "no-cache"
-    return await copilot.generate_q([], {}, num_questions, q_type)
+    return await copilot.generate_q([], {}, num_suggestions, q_type)
 
-@api.post("/question-gen", response_model=QuestionGenerationResponse)
-async def question_gen(request: QuestionGenerationRequest, response: Response):
+@api.post("/suggestions", response_model=SuggestionResponse, operation_id="suggestions", tags=["suggestions"])
+async def suggestions(request: SuggestionRequest, response: Response):
     response.headers["Cache-Control"] = "no-cache"
-    return await copilot.generate_q(request.messages, request.context, request.num_questions, request.type)
+    return await copilot.generate_q(request.messages, request.context, request.num_suggestions, request.type)
 
-@api.post("/chat")
-async def chat(request: ChatRequest, response: Response):
+@api.post("/chat/copilot", response_model=ChatResponse, operation_id="copilot_chat", tags=["chat"])
+async def copilt_chat(request: ChatRequest, response: Response, operation_id="copilt_chat"):
     response.headers["Cache-Control"] = "no-cache"
     return StreamingResponse(copilot.chat(request.messages))
 
-@api.post("/artifact-edit-chat", response_model=ChatResponse)
+@api.post("/chat/artifact-editing", response_model=ChatResponse, operation_id="artifact_edit_chat", tags=["generation"])
 async def artifact_edit_chat(request: ChatRequest, response: Response) -> ChatResponse:
     response.headers["Content-Type"] = "text/event-stream"
     response.headers["Cache-Control"] = "no-cache"

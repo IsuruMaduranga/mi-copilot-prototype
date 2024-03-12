@@ -17,7 +17,16 @@
 #####################################################################
 
 import uvicorn
+import io
+import yaml
 from app.api import api
 
-if __name__ == "__main__":
+# Auto generate openapi.yaml when the server starts
+openapi_json= api.openapi()
+yaml_s = io.StringIO()
+yaml.dump(openapi_json, yaml_s)
+with open("openapi.yaml", "w") as f:
+    f.write(yaml_s.getvalue())
+
+if __name__ == "__main__":    
     uvicorn.run(api, host="0.0.0.0", port=8000)
