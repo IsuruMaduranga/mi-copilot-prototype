@@ -1,1 +1,1 @@
-web: gunicorn server:api
+web: uvicorn server:api
