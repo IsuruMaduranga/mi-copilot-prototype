@@ -20,7 +20,7 @@ import json
 import logging
 from typing import List, AsyncGenerator
 from ai.agent import ArtifactGenAgent, QGenAgent, CopilotChatAgent, CopilotChatQGenAgent, ArtifactEditAgent
-from models.base import Message, ChatResponse, Event, QuestionGenerationResponse
+from models.base import Message, ChatResponse, Event, SuggestionResponse
 
 class Copilot():
     
@@ -45,11 +45,11 @@ class Copilot():
             parsed_q = json.loads(q)["questions"]
         except Exception as e:
             logging.error(e)
-            yield ChatResponse(questions=[], event=Event.QUESTION_GENERATION_ERROR).model_dump_json() + "\n"
+            yield ChatResponse(questions=[], event=Event.SUGGESTION_GENERATION_ERROR).model_dump_json() + "\n"
         else:
-            yield ChatResponse(questions=parsed_q, event=Event.QUESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
+            yield ChatResponse(questions=parsed_q, event=Event.SUGGESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
     
-    async def generate_q(self,  messages: List[Message], context: List[str], num_predicted_questions: int, q_type: str) -> QuestionGenerationResponse:
+    async def generate_q(self,  messages: List[Message], context: List[str], num_predicted_questions: int, q_type: str) -> SuggestionResponse:
         try:
             if q_type == "copilot_chat":
                 q = await self.copilot_chat_q_gen_agent.generate(messages, context, num_predicted_questions)
@@ -58,9 +58,9 @@ class Copilot():
             parsed_q = json.loads(q)["questions"]
         except Exception as e:
             logging.error(e)
-            return QuestionGenerationResponse(questions=[], event=Event.QUESTION_GENERATION_ERROR)
+            return SuggestionResponse(questions=[], event=Event.SUGGESTION_GENERATION_ERROR)
         else:
-            return QuestionGenerationResponse(questions=parsed_q, event=Event.QUESTION_GENERATION_SUCCESS)
+            return SuggestionResponse(questions=parsed_q, event=Event.SUGGESTION_GENERATION_SUCCESS)
         
     async def chat(self, messages: List[Message], ) -> AsyncGenerator[ChatResponse, None]:
         response = ""
@@ -68,7 +68,6 @@ class Copilot():
             if(chunk):
                 response += chunk
                 yield ChatResponse(content=chunk, event=Event.CHAT_GENERATING).model_dump_json() + "\n"
-        print(response)
         messages.append(Message(role="assistant", content=response))
         yield ChatResponse(content="", event=Event.CHAT_SUCCESS).model_dump_json() + "\n"
         try:
@@ -76,9 +75,9 @@ class Copilot():
             parsed_q = json.loads(q)["questions"]
         except Exception as e:
             logging.error(e)
-            yield ChatResponse(questions=[], event=Event.QUESTION_GENERATION_ERROR).model_dump_json() + "\n"
+            yield ChatResponse(questions=[], event=Event.SUGGESTION_GENERATION_ERROR).model_dump_json() + "\n"
         else:
-            yield ChatResponse(questions=parsed_q, event=Event.QUESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
+            yield ChatResponse(questions=parsed_q, event=Event.SUGGESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
     
     async def artifact_edit_chat(self, messages: List[Message], context: List[str]) -> AsyncGenerator[ChatResponse, None]:
         async for chunk in await self.artifact_edit_agent.chat(messages, context):
@@ -87,5 +86,5 @@ class Copilot():
         yield ChatResponse(content="", event=Event.CHAT_SUCCESS).model_dump_json() + "\n"
         
         # Generate questions
-        yield ChatResponse(questions=["Test question"], event=Event.QUESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
+        yield ChatResponse(questions=["Test question"], event=Event.SUGGESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
         

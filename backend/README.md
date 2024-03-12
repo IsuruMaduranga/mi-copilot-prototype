@@ -28,4 +28,8 @@ gunicorn server:api
 ```bash
 uvicorn server:api --reload
 ```
-7. You can check swagger documentation at http://127.0.0.1:8000/docs
+### Docs
+* OpenAPI - http://127.0.0.1:8000/docs
+* Redoc - http://127.0.0.1:8000/redoc
+* OpenAPI JSON - http://127.0.0.1:8000/openapi.json
+* OpenAPI YAML - http://127.0.0.1:8000/openapi.yaml

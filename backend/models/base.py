@@ -21,8 +21,8 @@ from pydantic import BaseModel
 from typing import List, Literal, Optional
 
 class Event(Enum):
-    QUESTION_GENERATION_ERROR = "question_generation_error"
-    QUESTION_GENERATION_SUCCESS = "question_generation_success"
+    SUGGESTION_GENERATION_ERROR = "suggestion_generation_error"
+    SUGGESTION_GENERATION_SUCCESS = "suggestion_generation_success"
     CHAT_GENERATING = "chat_generating"
     CHAT_ERROR = "chat_error"
     CHAT_SUCCESS = "chat_success"
@@ -43,16 +43,15 @@ class ChatResponse(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[Message]
     context: Optional[List[str]] = None
-    num_questions: Optional[int] = 1
+    num_suggestions: Optional[int] = 1
     
-class QuestionGenerationRequest(BaseModel):
+class SuggestionRequest(BaseModel):
     messages: List[Message]
     context: Optional[List[str]] = None
-    num_questions: Optional[int] = 1
+    num_suggestions: Optional[int] = 1
     type: Literal['artifact_gen', 'copilot_chat']
     
-class QuestionGenerationResponse(BaseModel):
+class SuggestionResponse(BaseModel):
     event: Event
     error: Error = None
     questions: List[str]
-
