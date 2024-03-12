@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.0.2
 info:
   title: WSO2 MI Copilot
   description: Backend for WSO2 MI Copilot VSCode Extension
@@ -166,16 +166,12 @@ components:
           type: array
           title: Messages
         context:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
+          items:
+            type: string
+          type: array
           title: Context
         num_suggestions:
-          anyOf:
-          - type: integer
-          - type: 'null'
+          type: integer
           title: Num Suggestions
           default: 1
       type: object
@@ -254,16 +250,12 @@ components:
           type: array
           title: Messages
         context:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
+          items:
+            type: string
+          type: array
           title: Context
         num_suggestions:
-          anyOf:
-          - type: integer
-          - type: 'null'
+          type: integer
           title: Num Suggestions
           default: 1
         type:
