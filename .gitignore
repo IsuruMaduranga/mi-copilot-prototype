@@ -25,3 +25,9 @@ replay_pid*
 
 # Mac
 .DS_Store
+
+# Other
+venv
+.venv
+.env
+__pycache__

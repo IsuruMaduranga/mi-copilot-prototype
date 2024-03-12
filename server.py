@@ -19,7 +19,7 @@
 import uvicorn
 import io
 import yaml
-from app.api import api
+from copilot.api import api
 
 # Auto generate openapi.yaml when the server starts
 openapi_json= api.openapi()

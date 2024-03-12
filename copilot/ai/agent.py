@@ -18,11 +18,11 @@
 
 import re
 from typing import List, AsyncGenerator
-from models.base import Message
 from jinja2 import Template
-from prompts.base import PromptFactory
-from ai.llm import LLM, LLMFactory
-from ai.utils import pretty_print_chat
+from copilot.models.base import Message
+from copilot.prompts.base import PromptFactory
+from copilot.ai.llm import LLM, LLMFactory
+from copilot.ai.utils import pretty_print_chat
 
 class BaseAgent:
     """

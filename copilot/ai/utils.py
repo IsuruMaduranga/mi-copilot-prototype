@@ -1,5 +1,5 @@
 from typing import List
-from models.base import Message
+from copilot.models.base import Message
 
 def pretty_print_chat(messages: List[Message]):
     for message in messages:
