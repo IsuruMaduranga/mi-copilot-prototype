@@ -1,0 +1,9 @@
+version: 0.1
+endpoints:
+- name: MI Copilot Backend
+  port: 8000
+  type: REST
+  networkVisibility: Public
+  context: /
+  schemaFilePath: openapi.yaml
+  
