@@ -24,7 +24,8 @@ from copilot.api import api
 # Auto generate openapi.yaml when the server starts
 openapi_json= api.openapi()
 yaml_s = io.StringIO()
-yaml.dump(openapi_json, yaml_s)
+yaml.dump(openapi_json, yaml_s, allow_unicode=True, sort_keys=False)
+print(yaml_s.getvalue())
 with open("openapi.yaml", "w") as f:
     f.write(yaml_s.getvalue())
 
