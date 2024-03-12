@@ -42,13 +42,13 @@ class ChatResponse(BaseModel):
     
 class ChatRequest(BaseModel):
     messages: List[Message]
-    context: Optional[List[str]] = None
-    num_suggestions: Optional[int] = 1
+    context: List[str] = None
+    num_suggestions: int = 1
     
 class SuggestionRequest(BaseModel):
     messages: List[Message]
-    context: Optional[List[str]] = None
-    num_suggestions: Optional[int] = 1
+    context: List[str] = None
+    num_suggestions: int = 1
     type: Literal['artifact_gen', 'copilot_chat']
     
 class SuggestionResponse(BaseModel):

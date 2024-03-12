@@ -34,6 +34,7 @@ api = FastAPI(
     version="0.1.0",
     license_info={"name": "Apache 2.0", "url": "https://www.apache.org/licenses/LICENSE-2.0"}
 )
+api.openapi_version = "3.0.2"
 
 copilot = Copilot()
 
