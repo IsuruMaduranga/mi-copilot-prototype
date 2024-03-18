@@ -17,6 +17,7 @@
 #####################################################################
 
 import functools
+import asyncio
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
@@ -55,10 +56,25 @@ def read_openapi_yaml() -> Response:
     yaml.dump(openapi_json, yaml_s)
     return Response(yaml_s.getvalue(), media_type='text/yaml')
 
+async def stream_numbers(count: int):
+    counter = 0
+    while True:
+        yield f"data: {counter}\n\n"
+        counter += 1
+        if counter == count:
+            break
+        await asyncio.sleep(0.1)
+
 @api.get("/health")
 async def health():
     return {"status": "ok"}
 
+@api.get("/health/stream", description="Streaming endpoint for load testing")
+async def health_stream(count: int,response: Response):
+    response.headers["Content-Type"] = "text/event-stream"
+    response.headers["Cache-Control"] = "no-cache"
+    return StreamingResponse(stream_numbers(count), media_type='text/event-stream')
+        
 @api.post("/chat/artifact-generation", response_model=ChatResponse, operation_id="artifact_gen_chat", tags=["generation"])
 async def artifact_gen_chat(request: ChatRequest, response: Response) -> ChatResponse:
     response.headers["Content-Type"] = "text/event-stream"

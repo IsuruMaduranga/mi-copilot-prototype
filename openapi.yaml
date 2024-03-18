@@ -17,6 +17,30 @@ paths:
           content:
             application/json:
               schema: {}
+  /health/stream:
+    get:
+      summary: Health Stream
+      description: Streaming endpoint for load testing
+      operationId: health_stream_health_stream_get
+      parameters:
+      - name: count
+        in: query
+        required: true
+        schema:
+          type: integer
+          title: Count
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /chat/artifact-generation:
     post:
       tags:
