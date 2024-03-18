@@ -56,11 +56,12 @@ class Copilot():
             else:
                 q = await self.q_gen_agent.generate(messages, context, num_predicted_questions)
             parsed_q = json.loads(q)["questions"]
+            res = SuggestionResponse(questions=parsed_q, event=Event.SUGGESTION_GENERATION_SUCCESS)
         except Exception as e:
             logging.error(e)
             return SuggestionResponse(questions=[], event=Event.SUGGESTION_GENERATION_ERROR)
         else:
-            return SuggestionResponse(questions=parsed_q, event=Event.SUGGESTION_GENERATION_SUCCESS)
+            return res
         
     async def chat(self, messages: List[Message], ) -> AsyncGenerator[ChatResponse, None]:
         response = ""
@@ -79,12 +80,21 @@ class Copilot():
         else:
             yield ChatResponse(questions=parsed_q, event=Event.SUGGESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
     
-    async def artifact_edit_chat(self, messages: List[Message], context: List[str]) -> AsyncGenerator[ChatResponse, None]:
+    async def artifact_edit_chat(self, messages: List[Message], context: List[str], num_predicted_questions: int) -> AsyncGenerator[ChatResponse, None]:
+        response = ""
         async for chunk in await self.artifact_edit_agent.chat(messages, context):
             if(chunk):
+                response += chunk
                 yield ChatResponse(content=chunk, event=Event.CHAT_GENERATING).model_dump_json() + "\n"
         yield ChatResponse(content="", event=Event.CHAT_SUCCESS).model_dump_json() + "\n"
-        
+        messages.append(Message(role="assistant", content=response))
         # Generate questions
-        yield ChatResponse(questions=["Test question"], event=Event.SUGGESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
+        try:
+            q = await self.q_gen_agent.generate(messages, context, num_predicted_questions)
+            parsed_q = json.loads(q)["questions"]
+        except Exception as e:
+            logging.error(e)
+            yield ChatResponse(questions=[], event=Event.SUGGESTION_GENERATION_ERROR).model_dump_json() + "\n"
+        else:
+            yield ChatResponse(questions=parsed_q, event=Event.SUGGESTION_GENERATION_SUCCESS).model_dump_json() + "\n"
         

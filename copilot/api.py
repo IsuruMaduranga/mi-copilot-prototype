@@ -100,4 +100,4 @@ async def copilt_chat(request: ChatRequest, response: Response, operation_id="co
 async def artifact_edit_chat(request: ChatRequest, response: Response) -> ChatResponse:
     response.headers["Content-Type"] = "text/event-stream"
     response.headers["Cache-Control"] = "no-cache"
-    return StreamingResponse(copilot.artifact_edit_chat(request.messages, request.context))
+    return StreamingResponse(copilot.artifact_edit_chat(request.messages, request.context, request.num_suggestions))

@@ -98,7 +98,7 @@ class QGenAgent():
             l = ""
             if message.role == "user":
                 l = "You: " + message.content
-            elif message.role == "system":
+            elif message.role == "assistant":
                 l = "AI: \n" + message.content
             m += l + "\n"
         return m
@@ -136,7 +136,7 @@ class CopilotChatQGenAgent(BaseAgent):
             l = ""
             if message.role == "user":
                 l = "You: " + message.content
-            elif message.role == "system":
+            elif message.role == "assistant":
                 l = "AI: \n" + message.content
             m += l + "\n"
         return m
