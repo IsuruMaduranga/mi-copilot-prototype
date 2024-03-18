@@ -1,14 +1,15 @@
+I am currenty editing below file. Please refer it and answer my question or do the required change requested under QUESTION.
+===== Currently editing file =====
 {{ file }}
-I am currenty editing above file. Please refer it and answer my question or do the required change requested under QUESTION.
+===== End of currently editing file =====
 QUESTION: {{ question }}
-
 {% if context %}
 My other project files:
+======== Rest of the project ========
 {% for item in context %}
 {{ item }}
 {% endfor %}
+======== End of the project ========
 {% endif %}
-
 If additional synapse artifacts are required, please create them and add them to the project.
-
 IMPORTANT: Don't change the xml articaft name of the project or chat history

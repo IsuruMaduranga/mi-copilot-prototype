@@ -1,8 +1,10 @@
 {% if chat_history %}
-Ask {{ num_of_questions }} {{ "question" if  num_of_questions==1 else "questions" }} to continue your chat with AI.
-Or as a learner you can ask entirely new questions also.
-chat_history:
+Your chat history with AI:
+======== START OF CHAT HISTORY =========
 {{ chat_history }}
+======== END OF CHAT HISTORY =========
+Continue your chat with AI by asking {{ num_of_questions }} {{ "question" if  num_of_questions==1 else "questions" }}.
+Or as a learner you can ask entirely new questions also.
 {% else %}
 Ask {{ num_of_questions }} {{ "question" if  num_of_questions==1 else "questions" }} to start a chat with AI.
 {% endif %}
